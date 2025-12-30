@@ -28,7 +28,6 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
   };
 
   const handleComplete = () => {
-    const hasAI = persons.some(p => p.isAI);
     const aiCount = persons.filter(p => p.isAI).length;
 
     if (aiCount > 1) {

@@ -1,6 +1,6 @@
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface AuthWrapperProps {
   children: ReactNode;
