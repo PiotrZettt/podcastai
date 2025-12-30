@@ -56,7 +56,7 @@ Keep your response concise and conversational (2-4 sentences max). Speak as if y
     };
 
     const command = new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      modelId: 'eu.anthropic.claude-3-5-sonnet-20241022-v2:0',
       contentType: 'application/json',
       accept: 'application/json',
       body: JSON.stringify(payload),

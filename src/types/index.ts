@@ -21,3 +21,13 @@ export interface Conversation {
   persons: Person[];
   turns: ConversationTurn[];
 }
+
+export type AuthScreen = 'login' | 'register' | 'forgotPassword';
+
+export interface PasswordValidation {
+  minLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+  hasSymbol: boolean;
+}
