@@ -41,11 +41,19 @@ exports.handler = async (event) => {
       const voiceId = personVoiceMap[turn.personId];
       const escapedText = escapeXml(turn.text);
 
-      // Use SSML with conversational style for more natural delivery
-      // Apply conversational domain for supported voices, with prosody adjustments
-      const ssml = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
+      // Check if voice supports conversational domain (only some neural voices do)
+      const supportsConversational = ['Joanna', 'Matthew', 'Justin', 'Ruth'].includes(voiceId);
+      
+      let ssml;
+      if (supportsConversational) {
+        // Use conversational domain for supported voices
+        ssml = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
+      } else {
+        // Use regular neural voice without conversational domain
+        ssml = `<speak><prosody rate="105%" pitch="+5%">${escapedText}</prosody><break time="800ms"/></speak>`;
+      }
 
-      console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId}`);
+      console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId} (conversational: ${supportsConversational})`);
 
       // Synthesize speech for this turn (synchronous)
       const command = new SynthesizeSpeechCommand({
