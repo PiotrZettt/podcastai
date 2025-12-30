@@ -108,16 +108,18 @@ exports.handler = async (event) => {
     const taskId = response.SynthesisTask.TaskId;
 
     // Poll for completion
-    let taskStatus = 'inProgress';
+    let taskStatus = 'scheduled';
     let attempts = 0;
     const maxAttempts = 30;
 
-    while (taskStatus === 'inProgress' && attempts < maxAttempts) {
+    while ((taskStatus === 'scheduled' || taskStatus === 'inProgress') && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const statusCommand = new GetSpeechSynthesisTaskCommand({ TaskId: taskId });
       const statusResponse = await pollyClient.send(statusCommand);
       taskStatus = statusResponse.SynthesisTask.TaskStatus;
+
+      console.log(`Polly task status: ${taskStatus}, attempt: ${attempts + 1}`);
       attempts++;
     }
 
