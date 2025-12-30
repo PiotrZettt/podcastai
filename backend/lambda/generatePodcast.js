@@ -41,38 +41,101 @@ exports.handler = async (event) => {
       const voiceId = personVoiceMap[turn.personId];
       const escapedText = escapeXml(turn.text);
 
-      // Check if voice supports conversational domain (only some neural voices do)
-      const supportsConversational = ['Joanna', 'Matthew', 'Justin', 'Ruth'].includes(voiceId);
+      console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId}`);
+
+      let audioBuffer;
+      let success = false;
       
-      let ssml;
+      // Try neural engine with conversational domain (only Matthew and Joanna support it)
+      const supportsConversational = ['Matthew', 'Joanna'].includes(voiceId);
+      
       if (supportsConversational) {
-        // Use conversational domain for supported voices
-        ssml = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
-      } else {
-        // Use regular neural voice without conversational domain
-        ssml = `<speak><prosody rate="105%" pitch="+5%">${escapedText}</prosody><break time="800ms"/></speak>`;
+        try {
+          const conversationalSSML = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
+          
+          const conversationalCommand = new SynthesizeSpeechCommand({
+            Text: conversationalSSML,
+            TextType: 'ssml',
+            OutputFormat: 'mp3',
+            VoiceId: voiceId,
+            Engine: 'neural',
+            LanguageCode: 'en-US',
+          });
+
+          const response = await pollyClient.send(conversationalCommand);
+          
+          const audioChunks = [];
+          for await (const chunk of response.AudioStream) {
+            audioChunks.push(chunk);
+          }
+          audioBuffer = Buffer.concat(audioChunks);
+          success = true;
+          console.log(`Successfully used neural + conversational for ${voiceId}`);
+          
+        } catch (error) {
+          console.log(`Neural + conversational failed for ${voiceId}: ${error.message}`);
+        }
       }
+      
+      // If conversational failed or not supported, try neural without conversational
+      if (!success) {
+        try {
+          const neuralSSML = `<speak><prosody rate="105%" pitch="+5%">${escapedText}</prosody><break time="800ms"/></speak>`;
+          
+          const neuralCommand = new SynthesizeSpeechCommand({
+            Text: neuralSSML,
+            TextType: 'ssml',
+            OutputFormat: 'mp3',
+            VoiceId: voiceId,
+            Engine: 'neural',
+            LanguageCode: 'en-US',
+          });
 
-      console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId} (conversational: ${supportsConversational})`);
-
-      // Synthesize speech for this turn (synchronous)
-      const command = new SynthesizeSpeechCommand({
-        Text: ssml,
-        TextType: 'ssml',
-        OutputFormat: 'mp3',
-        VoiceId: voiceId,
-        Engine: 'neural',
-        LanguageCode: 'en-US',
-      });
-
-      const response = await pollyClient.send(command);
-
-      // Convert audio stream to buffer
-      const audioChunks = [];
-      for await (const chunk of response.AudioStream) {
-        audioChunks.push(chunk);
+          const response = await pollyClient.send(neuralCommand);
+          
+          const audioChunks = [];
+          for await (const chunk of response.AudioStream) {
+            audioChunks.push(chunk);
+          }
+          audioBuffer = Buffer.concat(audioChunks);
+          success = true;
+          console.log(`Successfully used neural (no conversational) for ${voiceId}`);
+          
+        } catch (error) {
+          console.log(`Neural engine failed for ${voiceId}: ${error.message}`);
+        }
       }
-      const audioBuffer = Buffer.concat(audioChunks);
+      
+      // Final fallback: use standard engine
+      if (!success) {
+        try {
+          const standardSSML = `<speak><prosody rate="105%" pitch="+2%">${escapedText}</prosody><break time="800ms"/></speak>`;
+          
+          const standardCommand = new SynthesizeSpeechCommand({
+            Text: standardSSML,
+            TextType: 'ssml',
+            OutputFormat: 'mp3',
+            VoiceId: voiceId,
+            Engine: 'standard',
+            LanguageCode: 'en-US',
+          });
+
+          const response = await pollyClient.send(standardCommand);
+          
+          const audioChunks = [];
+          for await (const chunk of response.AudioStream) {
+            audioChunks.push(chunk);
+          }
+          audioBuffer = Buffer.concat(audioChunks);
+          success = true;
+          console.log(`Successfully used standard engine for ${voiceId}`);
+          
+        } catch (error) {
+          console.error(`All engines failed for ${voiceId}: ${error.message}`);
+          throw error;
+        }
+      }
+      
       audioBuffers.push(audioBuffer);
     }
 
