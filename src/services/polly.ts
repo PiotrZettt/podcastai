@@ -11,9 +11,9 @@ interface VoiceMapping {
   female: string[];
 }
 
-// Amazon Polly neural voices
+// Amazon Polly neural voices - Justin is warmer and more natural for males
 const VOICES: VoiceMapping = {
-  male: ['Matthew', 'Joey', 'Justin', 'Kevin', 'Stephen'],
+  male: ['Justin', 'Kevin', 'Matthew', 'Joey', 'Stephen'],
   female: ['Joanna', 'Kendra', 'Kimberly', 'Salli', 'Ruth'],
 };
 

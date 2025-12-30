@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 import type { AuthUser } from 'aws-amplify/auth';
+import { Button } from '@/components/ui/button';
 import Login from './auth/Login';
 import Register from './auth/Register';
 import ForgotPassword from './auth/ForgotPassword';
@@ -72,14 +73,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
   if (authStatus === 'loading') {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f8f9fa'
-      }}>
-        <div style={{ fontSize: '1.2rem', color: '#6c757d' }}>
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="text-xl text-muted-foreground">
           Loading...
         </div>
       </div>
@@ -114,33 +109,17 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
   return (
     <div>
-      <div style={{
-        padding: '1rem',
-        backgroundColor: '#f8f9fa',
-        borderBottom: '1px solid #dee2e6',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>PodcastAI</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span>Welcome, {user?.signInDetails?.loginId || 'User'}</span>
-          <button
-            onClick={handleSignOut}
-            style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.9rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Sign Out
-          </button>
+      <header className="border-b border-border bg-card p-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-primary m-0">PodcastAI</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-foreground">Welcome, {user?.signInDetails?.loginId || 'User'}</span>
+            <Button onClick={handleSignOut} variant="destructive" size="sm">
+              Sign Out
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
       {children}
     </div>
   );

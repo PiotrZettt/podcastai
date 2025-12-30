@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { signIn } from 'aws-amplify/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import AuthContainer from './AuthContainer';
 
 interface LoginProps {
@@ -52,97 +56,59 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
 
   return (
     <AuthContainer title="PodcastAI">
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            fontSize: '1rem',
-            border: '1px solid #dee2e6',
-            borderRadius: '4px',
-            marginBottom: '1rem'
-          }}
-        />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            fontSize: '1rem',
-            border: '1px solid #dee2e6',
-            borderRadius: '4px',
-            marginBottom: '1rem'
-          }}
-        />
+        <div>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+        </div>
 
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '1rem',
-          cursor: 'pointer'
-        }}>
+        <div className="flex items-center gap-2">
           <input
+            id="remember-me"
             type="checkbox"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
+            className="cursor-pointer"
           />
-          Remember me
-        </label>
+          <Label htmlFor="remember-me" className="cursor-pointer">
+            Remember me
+          </Label>
+        </div>
 
         {error && (
-          <div style={{
-            padding: '0.75rem',
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            border: '1px solid #f5c6cb',
-            borderRadius: '4px',
-            marginBottom: '1rem'
-          }}>
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            fontSize: '1rem',
-            backgroundColor: isLoading ? '#6c757d' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            marginBottom: '1rem'
-          }}
+          className="w-full"
         >
           {isLoading ? 'Logging in...' : 'Log In'}
-        </button>
+        </Button>
 
-        <div style={{ textAlign: 'center', fontSize: '0.9rem' }}>
+        <div className="text-center text-sm space-y-2">
           <button
             type="button"
             onClick={onSwitchToForgotPassword}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#007bff',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              marginBottom: '1rem'
-            }}
+            className="text-primary hover:underline bg-transparent border-none cursor-pointer"
           >
             Forgot password?
           </button>
@@ -151,13 +117,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
             <button
               type="button"
               onClick={onSwitchToRegister}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#007bff',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
+              className="text-primary hover:underline bg-transparent border-none cursor-pointer"
             >
               Register
             </button>

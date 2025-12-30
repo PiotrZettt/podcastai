@@ -41,8 +41,9 @@ exports.handler = async (event) => {
       const voiceId = personVoiceMap[turn.personId];
       const escapedText = escapeXml(turn.text);
 
-      // Use SSML with a pause after each turn
-      const ssml = `<speak><prosody rate="medium">${escapedText}</prosody><break time="800ms"/></speak>`;
+      // Use SSML with conversational style for more natural delivery
+      // Apply conversational domain for supported voices, with prosody adjustments
+      const ssml = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
 
       console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId}`);
 
@@ -114,7 +115,8 @@ exports.handler = async (event) => {
 };
 
 function getDefaultVoice(sex) {
-  return sex === 'male' ? 'Matthew' : 'Joanna';
+  // Justin is warmer and more natural than Matthew for male voices
+  return sex === 'male' ? 'Justin' : 'Joanna';
 }
 
 function escapeXml(unsafe) {

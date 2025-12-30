@@ -6,7 +6,6 @@ import PodcastPlayer from './components/PodcastPlayer';
 import type { Person, ConversationTurn } from './types';
 import { generateAIResponse } from './services/bedrock';
 import { generatePodcast } from './services/polly';
-import './App.css';
 
 type AppStage = 'setup' | 'conversation' | 'player';
 
@@ -54,26 +53,11 @@ function App() {
 
   return (
     <AuthWrapper>
-      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+      <div className="min-h-screen">
         {isGenerating && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            color: 'white',
-            fontSize: '1.5rem',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}>
+          <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 text-white text-2xl flex-col gap-4">
             <div>Generating your podcast...</div>
-            <div style={{ fontSize: '1rem', color: '#ccc' }}>
+            <div className="text-base text-muted-foreground">
               This may take a minute
             </div>
           </div>
