@@ -46,80 +46,45 @@ exports.handler = async (event) => {
       let audioBuffer;
       let success = false;
       
-      // Try neural engine with conversational domain (only Matthew and Joanna support it)
-      const supportsConversational = ['Matthew', 'Joanna'].includes(voiceId);
-      
-      if (supportsConversational) {
-        try {
-          const conversationalSSML = `<speak><amazon:domain name="conversational"><prosody rate="105%" pitch="+5%">${escapedText}</prosody></amazon:domain><break time="800ms"/></speak>`;
-          
-          const conversationalCommand = new SynthesizeSpeechCommand({
-            Text: conversationalSSML,
-            TextType: 'ssml',
-            OutputFormat: 'mp3',
-            VoiceId: voiceId,
-            Engine: 'neural',
-            LanguageCode: 'en-US',
-          });
+      // Try 1: Simple neural without any special features
+      try {
+        const simpleCommand = new SynthesizeSpeechCommand({
+          Text: escapedText,
+          TextType: 'text', // Use plain text first
+          OutputFormat: 'mp3',
+          VoiceId: voiceId,
+          Engine: 'neural',
+          LanguageCode: 'en-US',
+        });
 
-          const response = await pollyClient.send(conversationalCommand);
-          
-          const audioChunks = [];
-          for await (const chunk of response.AudioStream) {
-            audioChunks.push(chunk);
-          }
-          audioBuffer = Buffer.concat(audioChunks);
-          success = true;
-          console.log(`Successfully used neural + conversational for ${voiceId}`);
-          
-        } catch (error) {
-          console.log(`Neural + conversational failed for ${voiceId}: ${error.message}`);
+        console.log(`Attempting simple neural for voice: ${voiceId}`);
+        const response = await pollyClient.send(simpleCommand);
+        
+        const audioChunks = [];
+        for await (const chunk of response.AudioStream) {
+          audioChunks.push(chunk);
         }
+        audioBuffer = Buffer.concat(audioChunks);
+        success = true;
+        console.log(`✅ Simple neural worked for ${voiceId}`);
+        
+      } catch (error) {
+        console.log(`❌ Simple neural failed for ${voiceId}: ${error.message}`);
       }
       
-      // If conversational failed or not supported, try neural without conversational
+      // Try 2: Standard engine as fallback
       if (!success) {
         try {
-          const neuralSSML = `<speak><prosody rate="105%" pitch="+5%">${escapedText}</prosody><break time="800ms"/></speak>`;
-          
-          const neuralCommand = new SynthesizeSpeechCommand({
-            Text: neuralSSML,
-            TextType: 'ssml',
-            OutputFormat: 'mp3',
-            VoiceId: voiceId,
-            Engine: 'neural',
-            LanguageCode: 'en-US',
-          });
-
-          const response = await pollyClient.send(neuralCommand);
-          
-          const audioChunks = [];
-          for await (const chunk of response.AudioStream) {
-            audioChunks.push(chunk);
-          }
-          audioBuffer = Buffer.concat(audioChunks);
-          success = true;
-          console.log(`Successfully used neural (no conversational) for ${voiceId}`);
-          
-        } catch (error) {
-          console.log(`Neural engine failed for ${voiceId}: ${error.message}`);
-        }
-      }
-      
-      // Final fallback: use standard engine
-      if (!success) {
-        try {
-          const standardSSML = `<speak><prosody rate="105%" pitch="+2%">${escapedText}</prosody><break time="800ms"/></speak>`;
-          
           const standardCommand = new SynthesizeSpeechCommand({
-            Text: standardSSML,
-            TextType: 'ssml',
+            Text: escapedText,
+            TextType: 'text',
             OutputFormat: 'mp3',
             VoiceId: voiceId,
             Engine: 'standard',
             LanguageCode: 'en-US',
           });
 
+          console.log(`Attempting standard engine for voice: ${voiceId}`);
           const response = await pollyClient.send(standardCommand);
           
           const audioChunks = [];
@@ -128,10 +93,10 @@ exports.handler = async (event) => {
           }
           audioBuffer = Buffer.concat(audioChunks);
           success = true;
-          console.log(`Successfully used standard engine for ${voiceId}`);
+          console.log(`✅ Standard engine worked for ${voiceId}`);
           
         } catch (error) {
-          console.error(`All engines failed for ${voiceId}: ${error.message}`);
+          console.error(`❌ Both engines failed for ${voiceId}: ${error.message}`);
           throw error;
         }
       }

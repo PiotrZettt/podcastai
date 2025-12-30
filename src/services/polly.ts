@@ -11,10 +11,10 @@ interface VoiceMapping {
   female: string[];
 }
 
-// Amazon Polly neural voices - all voices confirmed to support neural engine
+// Start with most basic, universally supported voices for testing
 const VOICES: VoiceMapping = {
-  male: ['Justin', 'Matthew', 'Joey', 'Stephen'], // All support neural
-  female: ['Joanna', 'Salli', 'Kendra', 'Kimberly', 'Ivy', 'Ruth'], // All support neural
+  male: ['Matthew', 'Justin'], // Most reliable neural voices
+  female: ['Joanna', 'Salli'], // Most reliable neural voices  
 };
 
 function selectVoice(person: Person, index: number): string {
