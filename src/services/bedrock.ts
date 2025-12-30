@@ -42,21 +42,27 @@ Keep your response concise and conversational (2-4 sentences max). Speak as if y
       ? `Here's the conversation so far:\n\n${conversationContext}\n\nNow respond as ${person.name}:`
       : `Start the conversation as ${person.name}. Introduce yourself or make an opening statement.`;
 
-    // Prepare the request for Claude (Anthropic model on Bedrock)
+    // Prepare the request for Amazon Nova
     const payload = {
-      anthropic_version: 'bedrock-2023-05-31',
-      max_tokens: 500,
       messages: [
         {
           role: 'user',
-          content: userPrompt,
-        },
+          content: [
+            {
+              text: `${systemPrompt}\n\n${userPrompt}`
+            }
+          ]
+        }
       ],
-      system: systemPrompt,
+      inferenceConfig: {
+        max_new_tokens: 500,
+        temperature: 0.7,
+        top_p: 0.9
+      }
     };
 
     const command = new InvokeModelCommand({
-      modelId: 'eu.anthropic.claude-3-5-sonnet-20241022-v2:0',
+      modelId: 'amazon.nova-pro-v1:0',
       contentType: 'application/json',
       accept: 'application/json',
       body: JSON.stringify(payload),
@@ -65,8 +71,12 @@ Keep your response concise and conversational (2-4 sentences max). Speak as if y
     const response = await client.send(command);
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-    if (responseBody.content && responseBody.content[0]?.text) {
-      return responseBody.content[0].text;
+    // Nova response format
+    if (responseBody.output && responseBody.output.message && responseBody.output.message.content) {
+      const content = responseBody.output.message.content[0];
+      if (content.text) {
+        return content.text;
+      }
     }
 
     throw new Error('Unexpected response format from Bedrock');
