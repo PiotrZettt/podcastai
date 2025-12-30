@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;           /* #0a0a0a - Almost black */
-    --foreground: 0 0% 98%;          /* #fafafa - Off-white */
+    --background: 0 0% 96%;          /* Very light grey background */
+    --foreground: 222.2 84% 4.9%;    /* Dark text */
 
-    --card: 0 0% 9%;                 /* #171717 - Dark gray cards */
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;               /* White cards */
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 42 91% 41%;           /* #ca8a04 - Dark yellow */
-    --primary-foreground: 0 0% 98%;
+    --primary: 217.2 91.2% 59.8%;    /* Blue primary */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 15%;           /* #262626 - Slightly lighter gray */
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 210 40% 96%;        /* Light grey */
+    --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 0 0% 15%;               /* #262626 */
-    --muted-foreground: 0 0% 64%;    /* #a3a3a3 - Medium gray text */
+    --muted: 210 40% 96%;            /* Light grey */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Medium grey text */
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
 
-    --destructive: 0 84% 60%;        /* #dc2626 - Red for delete */
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;    /* Red */
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 25%;              /* #404040 - Subtle gray borders */
-    --input: 0 0% 25%;
-    --ring: 42 91% 41%;              /* #ca8a04 - Yellow focus ring */
+    --border: 214.3 31.8% 91.4%;    /* Light border */
+    --input: 0 0% 100%;              /* White input background */
+    --ring: 217.2 91.2% 59.8%;      /* Blue focus ring */
 
     --radius: 0.5rem;
   }
@@ -44,5 +44,19 @@
   body {
     @apply bg-background text-foreground;
     font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section {
+    @apply py-8;
+  }
+  
+  .form-section {
+    @apply space-y-6;
   }
 }

@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Play, Pause, Download, RefreshCw } from 'lucide-react';
 
 interface PodcastPlayerProps {
   audioUrl: string;
@@ -21,79 +24,73 @@ export default function PodcastPlayer({ audioUrl, onReset }: PodcastPlayerProps)
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-      <h2>Your Podcast is Ready!</h2>
+    <div className="container section">
+      <div className="max-w-2xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-8">Your Podcast is Ready!</h2>
 
-      <div style={{
-        marginTop: '2rem',
-        padding: '2rem',
-        border: '2px solid #28a745',
-        borderRadius: '12px',
-        backgroundColor: '#f8f9fa'
-      }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>
-          {isPlaying ? '⏸️' : '▶️'}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-center gap-2">
+              {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              Podcast Player
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex justify-center">
+              <div className="text-6xl mb-4">
+                {isPlaying ? '⏸️' : '▶️'}
+              </div>
+            </div>
+
+            <audio
+              ref={audioRef}
+              src={audioUrl}
+              onEnded={() => setIsPlaying(false)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
+
+            <Button
+              onClick={togglePlay}
+              size="lg"
+              variant="outline"
+              className="w-full mb-4 text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+            >
+              {isPlaying ? (
+                <>
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Play Podcast
+                </>
+              )}
+            </Button>
+
+            <div className="border rounded-lg p-4 bg-muted">
+              <audio controls src={audioUrl} className="w-full" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
+          <Button asChild size="lg" variant="outline" className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white">
+            <a
+              href={audioUrl}
+              download="podcast.mp3"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download MP3
+            </a>
+          </Button>
+
+          <Button onClick={onReset} variant="outline" size="lg" className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Create New Podcast
+          </Button>
         </div>
-
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onEnded={() => setIsPlaying(false)}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-
-        <button
-          onClick={togglePlay}
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.2rem',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginBottom: '1rem'
-          }}
-        >
-          {isPlaying ? 'Pause' : 'Play Podcast'}
-        </button>
-
-        <div style={{ marginTop: '1rem' }}>
-          <audio controls src={audioUrl} style={{ width: '100%' }} />
-        </div>
-      </div>
-
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <a
-          href={audioUrl}
-          download="podcast.mp3"
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: '#28a745',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '4px'
-          }}
-        >
-          Download MP3
-        </a>
-
-        <button
-          onClick={onReset}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Create New Podcast
-        </button>
       </div>
     </div>
   );

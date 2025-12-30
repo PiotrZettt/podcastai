@@ -109,12 +109,12 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
   return (
     <div>
-      <header className="border-b border-border bg-card p-4">
+      <header className="border-b border-yellow-600 bg-gray-800 shadow-sm p-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary m-0">PodcastAI</h1>
+          <h1 className="text-2xl font-bold text-yellow-500 m-0">PodcastAI</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-foreground">Welcome, {user?.signInDetails?.loginId || 'User'}</span>
-            <Button onClick={handleSignOut} variant="destructive" size="sm">
+            <span className="text-sm text-gray-200">Welcome, {user?.signInDetails?.loginId || 'User'}</span>
+            <Button onClick={handleSignOut} variant="outline" size="sm" className="border-yellow-600 text-yellow-800 hover:bg-yellow-600 hover:text-white">
               Sign Out
             </Button>
           </div>

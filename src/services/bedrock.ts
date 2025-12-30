@@ -36,7 +36,7 @@ export async function generateAIResponse(
 
 You are participating in a podcast conversation. Stay in character and respond naturally based on the conversation so far.
 
-Keep your response concise and conversational (2-4 sentences max). Speak as if you're in a real podcast.`;
+Keep your response concise and conversational (10-12 sentences max). Speak as if you're in a real podcast.`;
 
     const userPrompt = conversationContext
       ? `Here's the conversation so far:\n\n${conversationContext}\n\nNow respond as ${person.name}:`

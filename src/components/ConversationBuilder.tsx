@@ -1,4 +1,10 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import type { Person, ConversationTurn } from '../types';
 
 interface ConversationBuilderProps {
@@ -37,6 +43,11 @@ export default function ConversationBuilder({
 
     setTurns([...turns, newTurn]);
     setCurrentText('');
+    
+    // Auto-switch to next person
+    const currentIndex = persons.findIndex(p => p.id === selectedPersonId);
+    const nextIndex = (currentIndex + 1) % persons.length;
+    setSelectedPersonId(persons[nextIndex].id);
   };
 
   const handleGenerateAI = async () => {
@@ -54,6 +65,11 @@ export default function ConversationBuilder({
       };
 
       setTurns([...turns, newTurn]);
+      
+      // Auto-switch to next person
+      const currentIndex = persons.findIndex(p => p.id === selectedPersonId);
+      const nextIndex = (currentIndex + 1) % persons.length;
+      setSelectedPersonId(persons[nextIndex].id);
     } catch (error) {
       alert('Failed to generate AI response: ' + (error as Error).message);
     } finally {
@@ -81,187 +97,193 @@ export default function ConversationBuilder({
   const getPersonById = (id: string) => persons.find(p => p.id === id);
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <h2>Build Your Podcast Conversation</h2>
+    <div className="container section">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-8">Build Your Podcast Conversation</h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-        {/* Left side: Input */}
-        <div style={{ border: '1px solid #ccc', padding: '1.5rem', borderRadius: '8px' }}>
-          <h3>Add Statement</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left side: Input */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Statement</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="speaker-select">Who speaks next?</Label>
+                <Select
+                  value={selectedPersonId}
+                  onValueChange={(value) => {
+                    setSelectedPersonId(value);
+                    setCurrentText('');
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select speaker" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {persons.map(person => (
+                      <SelectItem key={person.id} value={person.id}>
+                        {person.name} {person.isAI && '(AI)'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-              Who speaks next?
-            </label>
-            <select
-              value={selectedPersonId}
-              onChange={(e) => {
-                setSelectedPersonId(e.target.value);
-                setCurrentText('');
-              }}
-              style={{ width: '100%', padding: '0.5rem', fontSize: '1rem' }}
-            >
-              {persons.map(person => (
-                <option key={person.id} value={person.id}>
-                  {person.name} {person.isAI ? '(AI)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+              {selectedPerson && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">{selectedPerson.name}</h4>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Age:</strong> {selectedPerson.age} | <strong>Sex:</strong> {selectedPerson.sex}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Personality:</strong> {selectedPerson.personality}
+                  </p>
+                </div>
+              )}
 
-          {isAIPerson ? (
-            <div>
-              <p style={{ marginBottom: '1rem', color: '#666' }}>
-                This is an AI participant. Click Generate to create a response.
-              </p>
-              <button
-                onClick={handleGenerateAI}
-                disabled={isGenerating}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isGenerating ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {isGenerating ? 'Generating...' : 'Generate AI Response'}
-              </button>
-            </div>
-          ) : (
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Statement:
-              </label>
-              <textarea
-                value={currentText}
-                onChange={(e) => setCurrentText(e.target.value)}
-                placeholder="Type or paste the statement..."
-                style={{
-                  width: '100%',
-                  minHeight: '120px',
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  marginBottom: '1rem'
-                }}
-              />
-              <button
-                onClick={handleAddTurn}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px'
-                }}
-              >
-                Add Statement
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right side: Conversation */}
-        <div style={{ border: '1px solid #ccc', padding: '1.5rem', borderRadius: '8px', maxHeight: '600px', overflowY: 'auto' }}>
-          <h3>Conversation ({turns.length} turns)</h3>
-
-          {turns.length === 0 ? (
-            <p style={{ color: '#999', fontStyle: 'italic' }}>No statements yet. Add the first one!</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {turns.map((turn, index) => {
-                const person = getPersonById(turn.personId);
-                const isEditing = editingTurnId === turn.id;
-
-                return (
-                  <div
-                    key={turn.id}
-                    style={{
-                      padding: '1rem',
-                      backgroundColor: turn.isGenerated ? '#e7f3ff' : '#f8f9fa',
-                      borderRadius: '6px',
-                      borderLeft: '4px solid ' + (turn.isGenerated ? '#007bff' : '#6c757d')
-                    }}
+              {isAIPerson ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    This person is AI-controlled. Click Generate to create an AI response.
+                  </p>
+                  <Button 
+                    onClick={handleGenerateAI} 
+                    disabled={isGenerating}
+                    variant="outline"
+                    className="w-full text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <strong>
-                        {index + 1}. {person?.name} {turn.isGenerated ? '(AI)' : ''}
-                      </strong>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {!isEditing && (
-                          <>
-                            <button
-                              onClick={() => handleEdit(turn)}
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem' }}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(turn.id)}
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '3px' }}
-                            >
-                              Delete
-                            </button>
-                          </>
+                    {isGenerating ? 'Generating...' : 'Generate AI Response'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="statement-text">What do they say?</Label>
+                    <Textarea
+                      id="statement-text"
+                      value={currentText}
+                      onChange={(e) => setCurrentText(e.target.value)}
+                      placeholder="Enter what this person says..."
+                      rows={4}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleAddTurn}
+                    disabled={!currentText.trim()}
+                    variant="outline"
+                    className="w-full text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                  >
+                    Add Statement
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Right side: Conversation */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Conversation ({turns.length} turns)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {turns.length === 0 ? (
+                <p className="text-muted-foreground italic text-center py-8">
+                  No statements yet. Add the first one!
+                </p>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {[...turns].reverse().map((turn, reversedIndex) => {
+                    const index = turns.length - 1 - reversedIndex;
+                    const person = getPersonById(turn.personId);
+                    const isEditing = editingTurnId === turn.id;
+
+                    return (
+                      <div
+                        key={turn.id}
+                        className={`p-4 rounded-lg border-l-4 ${
+                          turn.isGenerated 
+                            ? 'bg-blue-50 border-l-blue-500 text-blue-900' 
+                            : 'bg-slate-50 border-l-slate-400 text-slate-900'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold">
+                            {index + 1}. {person?.name} {turn.isGenerated ? '(AI)' : ''}
+                          </span>
+                          <div className="flex gap-2">
+                            {!isEditing && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEdit(turn)}
+                                  className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(turn.id)}
+                                  className="border-red-600 text-red-500 hover:bg-red-600 hover:text-white"
+                                >
+                                  Delete
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <Textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveEdit(turn.id)}
+                                className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingTurnId(null)}
+                                className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{turn.text}</p>
                         )}
                       </div>
-                    </div>
-
-                    {isEditing ? (
-                      <div>
-                        <textarea
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          style={{ width: '100%', minHeight: '80px', padding: '0.5rem', marginBottom: '0.5rem' }}
-                        />
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button
-                            onClick={() => handleSaveEdit(turn.id)}
-                            style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '3px' }}
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingTurnId(null)}
-                            style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{turn.text}</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Bottom actions */}
-      <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          onClick={() => onComplete(turns)}
-          disabled={turns.length === 0}
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.1rem',
-            backgroundColor: turns.length === 0 ? '#ccc' : '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: turns.length === 0 ? 'not-allowed' : 'pointer'
-          }}
-        >
-          Generate Podcast ({turns.length} statements)
-        </button>
+        {/* Bottom actions */}
+        <div className="flex justify-end mt-8">
+          <Button
+            onClick={() => onComplete(turns)}
+            disabled={turns.length === 0}
+            variant="outline"
+            size="lg"
+            className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+          >
+            Generate Podcast ({turns.length} statements)
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,10 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import type { Person, Sex } from '../types';
 
 interface PersonSetupProps {
@@ -45,110 +51,128 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
 
   if (currentStep === 'count') {
     return (
-      <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-        <h2>How many persons in the conversation?</h2>
-        <input
-          type="number"
-          min="2"
-          max="10"
-          value={numberOfPersons}
-          onChange={(e) => setNumberOfPersons(parseInt(e.target.value))}
-          style={{ padding: '0.5rem', fontSize: '1rem', marginRight: '1rem' }}
-        />
-        <button onClick={handleNumberSubmit} style={{ padding: '0.5rem 1rem', fontSize: '1rem' }}>
-          Next
-        </button>
+      <div className="container section">
+        <Card className="max-w-lg mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl">How many persons in the conversation?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="person-count">Number of participants (2-10)</Label>
+              <Input
+                id="person-count"
+                type="number"
+                min="2"
+                max="10"
+                value={numberOfPersons}
+                onChange={(e) => setNumberOfPersons(parseInt(e.target.value))}
+                className="w-32"
+              />
+            </div>
+            <Button onClick={handleNumberSubmit} variant="outline" className="w-full text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white">
+              Next
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <h2>Define Each Person</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {persons.map((person, index) => (
-          <div key={person.id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
-            <h3>Person {index + 1}</h3>
+    <div className="container section">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-8">Define Each Person</h2>
+        <div className="form-section">
+          {persons.map((person, index) => (
+            <Card key={person.id}>
+              <CardHeader>
+                <CardTitle>Person {index + 1}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor={`name-${person.id}`}>Name</Label>
+                  <Input
+                    id={`name-${person.id}`}
+                    type="text"
+                    value={person.name}
+                    onChange={(e) => updatePerson(person.id, { name: e.target.value })}
+                    placeholder="Enter name"
+                  />
+                </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Name:
-                <input
-                  type="text"
-                  value={person.name}
-                  onChange={(e) => updatePerson(person.id, { name: e.target.value })}
-                  style={{ marginLeft: '1rem', padding: '0.5rem', width: '200px' }}
-                />
-              </label>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`sex-${person.id}`}>Sex</Label>
+                  <Select
+                    value={person.sex}
+                    onValueChange={(value: Sex) => updatePerson(person.id, { sex: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sex" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Sex:
-                <select
-                  value={person.sex}
-                  onChange={(e) => updatePerson(person.id, { sex: e.target.value as Sex })}
-                  style={{ marginLeft: '1rem', padding: '0.5rem' }}
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </label>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`age-${person.id}`}>Age</Label>
+                  <Input
+                    id={`age-${person.id}`}
+                    type="number"
+                    min="18"
+                    max="100"
+                    value={person.age}
+                    onChange={(e) => updatePerson(person.id, { age: parseInt(e.target.value) })}
+                    className="w-24"
+                  />
+                </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Age:
-                <input
-                  type="number"
-                  min="18"
-                  max="100"
-                  value={person.age}
-                  onChange={(e) => updatePerson(person.id, { age: parseInt(e.target.value) })}
-                  style={{ marginLeft: '1rem', padding: '0.5rem', width: '100px' }}
-                />
-              </label>
-            </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 mt-6">
+                    <input
+                      id={`ai-${person.id}`}
+                      type="checkbox"
+                      checked={person.isAI}
+                      onChange={(e) => updatePerson(person.id, { isAI: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor={`ai-${person.id}`}>AI-controlled participant</Label>
+                  </div>
+                </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Personality:
-                <textarea
-                  value={person.personality}
-                  onChange={(e) => updatePerson(person.id, { personality: e.target.value })}
-                  placeholder="Describe the personality, speaking style, expertise..."
-                  style={{ marginLeft: '1rem', padding: '0.5rem', width: '100%', minHeight: '80px', display: 'block', marginTop: '0.5rem' }}
-                />
-              </label>
-            </div>
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor={`personality-${person.id}`}>Personality</Label>
+                  <Textarea
+                    id={`personality-${person.id}`}
+                    value={person.personality}
+                    onChange={(e) => updatePerson(person.id, { personality: e.target.value })}
+                    placeholder="Describe the personality, speaking style, expertise..."
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <input
-                  type="checkbox"
-                  checked={person.isAI}
-                  onChange={(e) => updatePerson(person.id, { isAI: e.target.checked })}
-                />
-                AI-controlled participant
-              </label>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-        <button
-          onClick={() => setCurrentStep('count')}
-          style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}
-        >
-          Back
-        </button>
-        <button
-          onClick={handleComplete}
-          style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' }}
-        >
-          Start Conversation
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep('count')}
+            className="text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleComplete}
+            variant="outline"
+            className="sm:ml-auto text-yellow-800 border-yellow-600 hover:bg-yellow-600 hover:text-white"
+          >
+            Start Conversation
+          </Button>
+        </div>
       </div>
     </div>
   );
