@@ -39,68 +39,28 @@ exports.handler = async (event) => {
     for (let i = 0; i < turns.length; i++) {
       const turn = turns[i];
       const voiceId = personVoiceMap[turn.personId];
-      const escapedText = escapeXml(turn.text);
+      const text = turn.text;
 
       console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId}`);
 
-      let audioBuffer;
-      let success = false;
-      
-      // Try 1: Simple neural without any special features
-      try {
-        const simpleCommand = new SynthesizeSpeechCommand({
-          Text: escapedText,
-          TextType: 'text', // Use plain text first
-          OutputFormat: 'mp3',
-          VoiceId: voiceId,
-          Engine: 'neural',
-          LanguageCode: 'en-US',
-        });
+      // Use standard engine - universally supported
+      const command = new SynthesizeSpeechCommand({
+        Text: text,
+        TextType: 'text',
+        OutputFormat: 'mp3',
+        VoiceId: voiceId,
+        Engine: 'standard', // Standard engine is supported by all voices
+        LanguageCode: 'en-US',
+      });
 
-        console.log(`Attempting simple neural for voice: ${voiceId}`);
-        const response = await pollyClient.send(simpleCommand);
-        
-        const audioChunks = [];
-        for await (const chunk of response.AudioStream) {
-          audioChunks.push(chunk);
-        }
-        audioBuffer = Buffer.concat(audioChunks);
-        success = true;
-        console.log(`✅ Simple neural worked for ${voiceId}`);
-        
-      } catch (error) {
-        console.log(`❌ Simple neural failed for ${voiceId}: ${error.message}`);
-      }
-      
-      // Try 2: Standard engine as fallback
-      if (!success) {
-        try {
-          const standardCommand = new SynthesizeSpeechCommand({
-            Text: escapedText,
-            TextType: 'text',
-            OutputFormat: 'mp3',
-            VoiceId: voiceId,
-            Engine: 'standard',
-            LanguageCode: 'en-US',
-          });
+      const response = await pollyClient.send(command);
 
-          console.log(`Attempting standard engine for voice: ${voiceId}`);
-          const response = await pollyClient.send(standardCommand);
-          
-          const audioChunks = [];
-          for await (const chunk of response.AudioStream) {
-            audioChunks.push(chunk);
-          }
-          audioBuffer = Buffer.concat(audioChunks);
-          success = true;
-          console.log(`✅ Standard engine worked for ${voiceId}`);
-          
-        } catch (error) {
-          console.error(`❌ Both engines failed for ${voiceId}: ${error.message}`);
-          throw error;
-        }
+      // Convert audio stream to buffer
+      const audioChunks = [];
+      for await (const chunk of response.AudioStream) {
+        audioChunks.push(chunk);
       }
-      
+      const audioBuffer = Buffer.concat(audioChunks);
       audioBuffers.push(audioBuffer);
     }
 
@@ -151,15 +111,6 @@ exports.handler = async (event) => {
 };
 
 function getDefaultVoice(sex) {
-  // Justin is warmer and more natural than Matthew for male voices
-  return sex === 'male' ? 'Justin' : 'Joanna';
-}
-
-function escapeXml(unsafe) {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+  // Use Matthew and Joanna - reliable standard voices
+  return sex === 'male' ? 'Matthew' : 'Joanna';
 }

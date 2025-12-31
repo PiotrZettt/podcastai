@@ -11,10 +11,10 @@ interface VoiceMapping {
   female: string[];
 }
 
-// Start with most basic, universally supported voices for testing
+// Standard engine voices - universally supported in all regions
 const VOICES: VoiceMapping = {
-  male: ['Matthew', 'Justin'], // Most reliable neural voices
-  female: ['Joanna', 'Salli'], // Most reliable neural voices  
+  male: ['Matthew', 'Joey', 'Justin'],
+  female: ['Joanna', 'Kendra', 'Kimberly', 'Salli'],
 };
 
 function selectVoice(person: Person, index: number): string {
