@@ -6,10 +6,10 @@ export async function generateAIResponse(
   allPersons: Person[]
 ): Promise<string> {
   try {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const apiKey = import.meta.env.OPENAI_API_KEY;
 
     if (!apiKey) {
-      throw new Error('VITE_OPENAI_API_KEY environment variable not set');
+      throw new Error('OPENAI_API_KEY environment variable not set');
     }
 
     // Build context from conversation history
