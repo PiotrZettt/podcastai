@@ -53,7 +53,7 @@ exports.handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'tts-1', // Use faster model to stay under API Gateway 29s timeout
+          model: 'tts-1-hd', // High-definition quality
           input: text,
           voice: voiceId,
           response_format: 'mp3',

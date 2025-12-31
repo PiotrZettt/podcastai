@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.2",
-    "@aws-sdk/client-bedrock-runtime": "^3.958.0",
-    "@aws-sdk/client-polly": "^3.958.0",
     "@radix-ui/react-select": "^2.2.6",
     "aws-amplify": "^6.15.9",
     "class-variance-authority": "^0.7.1",
