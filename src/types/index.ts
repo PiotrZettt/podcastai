@@ -1,11 +1,14 @@
 export type Sex = 'male' | 'female';
 
+export type PersonalityType = 'energetic' | 'calm' | 'sophisticated';
+
 export interface Person {
   id: string;
   name: string;
   sex: Sex;
   age: number;
-  personality: string;
+  personalityType: PersonalityType;
+  personality?: string; // Optional detailed description for future ElevenLabs use
   isAI: boolean;
 }
 

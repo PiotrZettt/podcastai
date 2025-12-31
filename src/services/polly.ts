@@ -1,25 +1,34 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
-import type { Person, ConversationTurn } from '../types';
+import type { Person, ConversationTurn, PersonalityType } from '../types';
 
 interface GeneratePodcastRequest {
   persons: Person[];
   turns: ConversationTurn[];
 }
 
-interface VoiceMapping {
-  male: string[];
-  female: string[];
+interface PersonalityVoiceMap {
+  male: string;
+  female: string;
 }
 
-// OpenAI TTS voices - high quality, natural sounding
-const VOICES: VoiceMapping = {
-  male: ['echo', 'onyx', 'fable'],      // echo: clear, onyx: deep, fable: British
-  female: ['nova', 'shimmer', 'alloy'], // nova: warm, shimmer: soft, alloy: neutral
+// Personality-to-voice mapping for OpenAI TTS
+const PERSONALITY_VOICES: Record<PersonalityType, PersonalityVoiceMap> = {
+  energetic: {
+    male: 'echo',      // Clear, energetic male voice
+    female: 'shimmer', // Soft, youthful female voice
+  },
+  calm: {
+    male: 'onyx',      // Deep, authoritative male voice
+    female: 'nova',    // Warm, calm female voice
+  },
+  sophisticated: {
+    male: 'fable',     // British, sophisticated male voice
+    female: 'alloy',   // Neutral, balanced female voice
+  },
 };
 
-function selectVoice(person: Person, index: number): string {
-  const voiceList = VOICES[person.sex];
-  return voiceList[index % voiceList.length];
+function selectVoice(person: Person): string {
+  return PERSONALITY_VOICES[person.personalityType][person.sex];
 }
 
 export async function generatePodcast(
@@ -35,10 +44,10 @@ export async function generatePodcast(
       throw new Error('No authentication token available');
     }
 
-    // Create voice mapping for each person
+    // Create voice mapping for each person based on personality type
     const personVoiceMap: Record<string, string> = {};
-    persons.forEach((person, index) => {
-      personVoiceMap[person.id] = selectVoice(person, index);
+    persons.forEach((person) => {
+      personVoiceMap[person.id] = selectVoice(person);
     });
 
     const requestBody: GeneratePodcastRequest = {
@@ -81,6 +90,25 @@ export async function generatePodcast(
   }
 }
 
-export function getVoiceForPerson(person: Person, index: number): string {
-  return selectVoice(person, index);
+export function getVoiceForPerson(person: Person): string {
+  return selectVoice(person);
+}
+
+// Helper to get voice description for UI display
+export function getVoiceDescription(personalityType: PersonalityType, sex: 'male' | 'female'): string {
+  const voiceDescriptions = {
+    energetic: {
+      male: 'Echo - Clear, energetic voice',
+      female: 'Shimmer - Soft, youthful voice',
+    },
+    calm: {
+      male: 'Onyx - Deep, authoritative voice',
+      female: 'Nova - Warm, calm voice',
+    },
+    sophisticated: {
+      male: 'Fable - British, sophisticated voice',
+      female: 'Alloy - Neutral, balanced voice',
+    },
+  };
+  return voiceDescriptions[personalityType][sex];
 }

@@ -32,7 +32,10 @@ export async function generateAIResponse(
     }).join('\n\n');
 
     // Build the system prompt
-    const systemPrompt = `You are ${person.name}, a ${person.age}-year-old ${person.sex} with the following personality: ${person.personality}
+    const personalityDescription = person.personality ||
+      `${person.personalityType} character (${person.age} years old)`;
+
+    const systemPrompt = `You are ${person.name}, a ${person.age}-year-old ${person.sex} with the following personality: ${personalityDescription}
 
 You are participating in a podcast conversation. Stay in character and respond naturally based on the conversation so far.
 

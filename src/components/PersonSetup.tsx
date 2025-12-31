@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { Person, Sex } from '../types';
+import { getVoiceDescription } from '../services/polly';
+import type { Person, Sex, PersonalityType } from '../types';
 
 interface PersonSetupProps {
   onComplete: (persons: Person[]) => void;
@@ -20,8 +21,9 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
     const initialPersons: Person[] = Array.from({ length: numberOfPersons }, (_, i) => ({
       id: crypto.randomUUID(),
       name: `Person ${i + 1}`,
-      sex: 'male',
+      sex: 'male' as Sex,
       age: 30,
+      personalityType: 'calm' as PersonalityType,
       personality: '',
       isAI: false,
     }));
@@ -41,8 +43,8 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
       return;
     }
 
-    if (persons.some(p => !p.name || !p.personality)) {
-      alert('Please fill in all person details');
+    if (persons.some(p => !p.name)) {
+      alert('Please fill in all person names');
       return;
     }
 
@@ -130,6 +132,26 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor={`personality-type-${person.id}`}>Voice Character</Label>
+                  <Select
+                    value={person.personalityType}
+                    onValueChange={(value: PersonalityType) => updatePerson(person.id, { personalityType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select voice character" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="energetic">Energetic & Young</SelectItem>
+                      <SelectItem value="calm">Calm & Authoritative</SelectItem>
+                      <SelectItem value="sophisticated">Sophisticated & British</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {getVoiceDescription(person.personalityType, person.sex)}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <div className="flex items-center space-x-2 mt-6">
                     <input
                       id={`ai-${person.id}`}
@@ -143,13 +165,16 @@ export default function PersonSetup({ onComplete }: PersonSetupProps) {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor={`personality-${person.id}`}>Personality</Label>
+                  <Label htmlFor={`personality-${person.id}`}>
+                    Personality Details
+                    <span className="text-muted-foreground text-sm ml-2">(optional, for AI generation)</span>
+                  </Label>
                   <Textarea
                     id={`personality-${person.id}`}
-                    value={person.personality}
+                    value={person.personality || ''}
                     onChange={(e) => updatePerson(person.id, { personality: e.target.value })}
-                    placeholder="Describe the personality, speaking style, expertise..."
-                    rows={4}
+                    placeholder="Describe the personality, speaking style, expertise... (used for AI conversation generation)"
+                    rows={3}
                   />
                 </div>
               </CardContent>
