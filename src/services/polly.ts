@@ -11,10 +11,10 @@ interface VoiceMapping {
   female: string[];
 }
 
-// Standard engine voices - universally supported in all regions
+// OpenAI TTS voices - high quality, natural sounding
 const VOICES: VoiceMapping = {
-  male: ['Matthew', 'Joey', 'Justin'],
-  female: ['Joanna', 'Kendra', 'Kimberly', 'Salli'],
+  male: ['echo', 'onyx', 'fable'],      // echo: clear, onyx: deep, fable: British
+  female: ['nova', 'shimmer', 'alloy'], // nova: warm, shimmer: soft, alloy: neutral
 };
 
 function selectVoice(person: Person, index: number): string {

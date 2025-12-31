@@ -1,13 +1,12 @@
-const { PollyClient, SynthesizeSpeechCommand } = require('@aws-sdk/client-polly');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
-const pollyClient = new PollyClient({ region: process.env.AWS_REGION });
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 const BUCKET_NAME = process.env.PODCAST_BUCKET_NAME;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 /**
- * Lambda handler for generating podcast from conversation turns
+ * Lambda handler for generating podcast from conversation turns using OpenAI TTS
  */
 exports.handler = async (event) => {
   console.log('Event:', JSON.stringify(event, null, 2));
@@ -27,13 +26,17 @@ exports.handler = async (event) => {
       };
     }
 
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable not set');
+    }
+
     // Create voice mapping
     const personVoiceMap = {};
     persons.forEach((person) => {
       personVoiceMap[person.id] = person.voiceId || getDefaultVoice(person.sex);
     });
 
-    // Synthesize each turn separately with the correct voice
+    // Synthesize each turn separately with the correct voice using OpenAI TTS
     const audioBuffers = [];
 
     for (let i = 0; i < turns.length; i++) {
@@ -41,27 +44,34 @@ exports.handler = async (event) => {
       const voiceId = personVoiceMap[turn.personId];
       const text = turn.text;
 
-      console.log(`Synthesizing turn ${i + 1}/${turns.length} with voice ${voiceId}`);
+      console.log(`Synthesizing turn ${i + 1}/${turns.length} with OpenAI voice ${voiceId}`);
 
-      // Use standard engine - universally supported
-      const command = new SynthesizeSpeechCommand({
-        Text: text,
-        TextType: 'text',
-        OutputFormat: 'mp3',
-        VoiceId: voiceId,
-        Engine: 'standard', // Standard engine is supported by all voices
-        LanguageCode: 'en-US',
+      // Call OpenAI TTS API
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'tts-1-hd', // High-definition quality
+          input: text,
+          voice: voiceId,
+          response_format: 'mp3',
+        }),
       });
 
-      const response = await pollyClient.send(command);
-
-      // Convert audio stream to buffer
-      const audioChunks = [];
-      for await (const chunk of response.AudioStream) {
-        audioChunks.push(chunk);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI TTS failed: ${response.status} - ${errorText}`);
       }
-      const audioBuffer = Buffer.concat(audioChunks);
+
+      // Convert response to buffer
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = Buffer.from(arrayBuffer);
       audioBuffers.push(audioBuffer);
+
+      console.log(`✅ Synthesized ${audioBuffer.length} bytes for turn ${i + 1}`);
     }
 
     // Concatenate all audio buffers
@@ -91,7 +101,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         audioUrl: audioUrl,
-        message: 'Podcast generated successfully',
+        message: 'Podcast generated successfully with OpenAI TTS',
       }),
     };
   } catch (error) {
@@ -111,6 +121,8 @@ exports.handler = async (event) => {
 };
 
 function getDefaultVoice(sex) {
-  // Use Matthew and Joanna - reliable standard voices
-  return sex === 'male' ? 'Matthew' : 'Joanna';
+  // OpenAI voices: alloy, echo, fable, onyx, nova, shimmer
+  // Male voices: echo (clear male), onyx (deep male), fable (British)
+  // Female voices: nova (warm), shimmer (soft), alloy (neutral)
+  return sex === 'male' ? 'echo' : 'nova';
 }
