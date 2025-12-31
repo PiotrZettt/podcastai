@@ -36,11 +36,10 @@ exports.handler = async (event) => {
       personVoiceMap[person.id] = person.voiceId || getDefaultVoice(person.sex);
     });
 
-    // Synthesize each turn separately with the correct voice using OpenAI TTS
-    const audioBuffers = [];
+    // Synthesize all turns in parallel for speed
+    console.log(`Starting parallel synthesis of ${turns.length} turns`);
 
-    for (let i = 0; i < turns.length; i++) {
-      const turn = turns[i];
+    const synthesisPromises = turns.map(async (turn, i) => {
       const voiceId = personVoiceMap[turn.personId];
       const text = turn.text;
 
@@ -54,7 +53,7 @@ exports.handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'tts-1-hd', // High-definition quality
+          model: 'tts-1', // Use faster model to stay under API Gateway 29s timeout
           input: text,
           voice: voiceId,
           response_format: 'mp3',
@@ -63,16 +62,24 @@ exports.handler = async (event) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`OpenAI TTS failed: ${response.status} - ${errorText}`);
+        throw new Error(`OpenAI TTS failed for turn ${i + 1}: ${response.status} - ${errorText}`);
       }
 
       // Convert response to buffer
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = Buffer.from(arrayBuffer);
-      audioBuffers.push(audioBuffer);
 
       console.log(`✅ Synthesized ${audioBuffer.length} bytes for turn ${i + 1}`);
-    }
+
+      return { index: i, buffer: audioBuffer };
+    });
+
+    // Wait for all synthesis to complete
+    const results = await Promise.all(synthesisPromises);
+
+    // Sort by original index to maintain turn order
+    results.sort((a, b) => a.index - b.index);
+    const audioBuffers = results.map(r => r.buffer);
 
     // Concatenate all audio buffers
     console.log(`Concatenating ${audioBuffers.length} audio segments`);
